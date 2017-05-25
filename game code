@@ -1,0 +1,99 @@
+x = 400
+y = 40
+import os
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+
+import pygame, sys, random
+from pygame.locals import *
+
+pygame.init()
+screen = pygame.display.set_mode((700,700))
+pygame.display.set_caption("Egg catcher")
+
+FPS = 40
+clock = pygame.time.Clock()
+
+eggSpeed = 8
+eggX, eggY = 250, 0
+playerSpeed = 6
+playerX, playerY = 300, 620
+isMovingLeft = None
+timer = 300
+level = 1
+level_counter = 0
+count = 0
+score = 0
+isRunning = True
+
+def displayScore():
+    global score
+    fontObj = pygame.font.Font('Gasalt.ttf', 72)
+    textSurfaceObj = fontObj.render('Score: ' + str(score) , True,(0, 102, 255) , (0,0,0,0))
+    textRectObj = textSurfaceObj.get_rect()
+    textRectObj.center = (320, 50)
+    screen.blit(textSurfaceObj, textRectObj)
+
+basket = pygame.image.load("resources/images/basket.png")
+
+class Egg(object):
+    eggX = 0
+    eggY = 0
+    position = 0
+    egg = pygame.image.load("resources/images/egg.png")
+
+def new_egg(x,p):
+    egg = Egg()
+    egg.eggX = x
+    egg.eggY = 0
+    egg.position = p
+    return egg
+
+eggs = []
+
+while isRunning:
+    screen.fill((0,0,0))
+    timer += 1
+    screen.fill((0,0,0))
+    displayScore()
+    for x in eggs:
+        x.eggY += eggSpeed * level
+    
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                isMovingLeft = True
+            if event.key == K_RIGHT:
+                isMovingLeft = False
+        if event.type == KEYUP:
+            if event.key == K_LEFT or event.key == K_RIGHT:
+                isMovingLeft = None
+
+    if isMovingLeft != None:
+        if isMovingLeft == True:
+            playerX -= playerSpeed
+        if isMovingLeft == False:
+            playerX += playerSpeed
+
+    if timer > random.randint(40, 140):
+        count += 1
+        eggs[0:0] = [new_egg(random.randint(5, 650), count)]
+        timer = 0
+    for x in eggs:
+        screen.blit(x.egg,(x.eggX, x.eggY) )
+
+    if len(eggs)!=0 and eggs[len(eggs)-1].eggY > 640:
+            if playerX< eggs[len(eggs)-1].eggX < playerX+110:
+                score += 10
+                print("Eggs detected      " +str(score))
+            eggs.pop()
+            
+    print(len(eggs))
+            
+    screen.blit(basket, (playerX,playerY))
+    pygame.display.flip()
+    clock.tick(FPS)
+
+    
